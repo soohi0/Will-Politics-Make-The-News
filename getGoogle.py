@@ -42,8 +42,8 @@ for idx, key in enumerate(keywords):
 
     getDataInfoCsv = pd.read_csv(key[0] + ".txt")
 
-
-    for i in (key):
+    # 키워드의 최고 vol날짜를 찾는 것
+    for i in key:
         maxVal = max(getDataInfoCsv[i])
         for idx, valVol in enumerate(getDataInfoCsv[i]):
             if(maxVal == valVol):

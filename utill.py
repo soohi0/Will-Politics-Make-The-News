@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from os import path
 import json
+from datetime import datetime, timedelta
+import time
 
 pytrends = TrendReq(hl = "ko", tz = 540)
 
@@ -24,20 +26,23 @@ except Exception as e:
 keywords = []
 data = []
 
+maxVolDate = []
+
 for i in rawDataJson:
-    keywords.append([ i["정치"], i["연예계"] ])
-    data.append( [ i["시작"], i["종료"] ] )
+    keywords.append([ i["정치"]])
+    # data.append( [ i["시작"], i["종료"] ] )
 
 for idx, key in enumerate(keywords):
-    period = str(data[idx][0]) + ' ' + str(data[idx][1])
-    pytrends.build_payload(key, cat = 0, timeframe = period, geo = 'KR', gprop = '')
+    # period = str(data[idx][0]) + ' ' + str(data[idx][1])
+    pytrends.build_payload(key, cat = 0, timeframe ='2010-01-01 2021-01-01', geo = 'KR', gprop = '')
     getDataInfo = pytrends.interest_over_time()
 
     del getDataInfo['isPartial']
 
-    print(getDataInfo.keys())
+    # print(getDataInfo.keys())
     # key값으로 키워드만 있음. 날짜가 안나옴
 
+    # 근데 저장하면 Date 값이 저장이 됨 
     getDataInfo.to_csv(key[0] + ".txt" ,encoding = 'utf-8-sig')
 
     getDataInfoCsv = pd.read_csv(key[0] + ".txt")
@@ -47,30 +52,35 @@ for idx, key in enumerate(keywords):
         maxVal = max(getDataInfoCsv[i])
         for idx, valVol in enumerate(getDataInfoCsv[i]):
             if(maxVal == valVol):
-                print(maxVal)
-                print(getDataInfoCsv.iloc[idx]["date"])
+                maxVolDate.append(getDataInfoCsv.iloc[idx]["date"])
+    
 
+for idx, key in enumerate(keywords):
+    print(key[0], ' 의 최대 관심 날짜 :: ' , maxVolDate[idx])
+    year = int(maxVolDate[idx][:4])
+    month = int(maxVolDate[idx][5:7])
+    day = int(maxVolDate[idx][8:])
 
-    # for i in key:
-    #     maxVal = max(getDataInfo[i])
-    #     print(maxVal)
-        # maxVal = max(getDataInfo[i])
-        # for idx,data in enumerate(getDataInfo[i]):
-        #     if(data == maxVal):
-        #         print(i, "  idx :: ", getDataInfo["idx"], "  data :: ", data)
-            
-    plt.figure()
-    sns.set(style="darkgrid", palette = 'rocket')
-    ax = sns.lineplot(data=getDataInfo)
-    ax.set_title('THAAD & Hong,Kim Love', fontsize=20)
+    time = datetime(year,month,day)
+    startDate = str(time + timedelta(weeks =-3))[:10].strip()
+    endDate = str(time + timedelta(weeks = 3))[:10].strip()
+    print("startDate :: ", startDate )
+    print("endDate :: ", endDate )
 
-    # 윈도우에서 한글 글꼴 설정하면 굳이 안써도 돼
-    plt.legend('TH', ncol=4, loc='upper left')
+    # pytrends.get_historical_interest(kw_list, year_start=2018, month_start=1, day_start=1, hour_start=0, year_end=2018, month_end=2, day_end=1, hour_end=0, geo='ko', gprop='', sleep=0)
 
-    plt.xlabel('date')
-    plt.ylabel('Vol')
+    # plt.figure()
+    # sns.set(style="darkgrid", palette = 'rocket')
+    # ax = sns.lineplot(data=getDataInfo)
+    # ax.set_title('THAAD & Hong,Kim Love', fontsize=20)
 
-    plt.show()
+    # # 윈도우에서 한글 글꼴 설정하면 굳이 안써도 돼
+    # plt.legend('TH', ncol=4, loc='upper left')
+
+    # plt.xlabel('date')
+    # plt.ylabel('Vol')
+
+    # plt.show()
 
 # pytrends.build_payload(keywords2, cat = 0, timeframe = 'today 5-y', geo = 'KR', gprop = '')
 # getDataInfo2 = pytrends.interest_over_time()
@@ -84,8 +94,6 @@ for idx, key in enumerate(keywords):
 # 극단치를 버리는 로직을 사용해서 90 말고 다른 값을 쓰는 것도 좋을 둣.(시간나면 ㄱ)
 
 # plt.rcParams['axes.unicode_minus'] = False
-
-
 
 # getDataInfo1.to_csv("사드, 홍상수.csv", encoding = 'utf-8-sig')
 # getDataInfo2.to_csv("기타.csv", encoding = 'utf-8-sig')
